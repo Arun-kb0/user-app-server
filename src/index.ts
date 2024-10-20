@@ -4,11 +4,13 @@ import adminRoutes from './Routes/adminRoutes'
 import dotenv from "dotenv";
 import { errorHandler } from "./middleware/errorHandler";
 import { logger } from "./middleware/logger";
+import cors from 'cors'
 
 const app = express()
 dotenv.config()
 
 app.use(express.json())
+app.use(cors())
 app.use(logger)
 
 
