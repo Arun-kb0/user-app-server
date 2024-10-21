@@ -17,8 +17,10 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
   try {
     const user = req.body
     if (!user) throw new HttpError('user is required', BAD_REQUEST)
+    console.log("user = ")
+    console.log(user)
     const newUser = await prismaClient.users.create({ data: user })
-    res.status(OK).json({ message: 'user created', newUser })
+    res.status(OK).json({ message: 'user created', user:newUser })
   } catch (error) {
     next(error)
   }
@@ -35,7 +37,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
       where: { userId: userId },
       data: user
     })
-    res.status(OK).json({ message: 'user created', newUser })
+    res.status(OK).json({ message: 'user created', user:newUser })
   } catch (error) {
     next(error)
   }
