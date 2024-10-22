@@ -7,13 +7,19 @@ import { logger } from "./middleware/logger";
 import cors from 'cors'
 import verifyJWT from "./middleware/verifyJWT";
 import authRoutes from './Routes/authRoutes'
+import cookieParser from "cookie-parser";
+import corsOptions from "./config/corsOptions";
+import credentials from "./middleware/credentials";
 
 const app = express()
 dotenv.config()
 
 app.use(express.json())
-app.use(cors())
+app.use(cookieParser())
+
 app.use(logger)
+app.use(credentials)
+app.use(cors(corsOptions))
 
 app.use('/auth', authRoutes)
 app.use('/admin', adminRoutes)
