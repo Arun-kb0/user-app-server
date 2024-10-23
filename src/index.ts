@@ -22,9 +22,9 @@ app.use(credentials)
 app.use(cors(corsOptions))
 
 app.use('/auth', authRoutes)
-app.use('/admin', adminRoutes)
 
 app.use(verifyJWT)
+app.use('/admin', adminRoutes)
 app.use('/', userRoutes)
 
 app.use(errorHandler)

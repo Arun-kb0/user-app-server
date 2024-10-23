@@ -1,11 +1,12 @@
 import express from 'express'
-import { getHome, getProfile } from '../controller/usersController'
+import { addProfilePicture, getHome, getProfile } from '../controller/usersController'
 
 const router = express.Router()
 
 
 router.get('/', getHome)
-router.get('/profile',getProfile)
-
+router.route('/profile')
+  .get(getProfile)
+  .post(addProfilePicture)
 
 export default router

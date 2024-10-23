@@ -3,7 +3,48 @@ import { HttpError } from '../constants/HttpError'
 import { BAD_REQUEST, FORBIDDEN, NO_CONTENT, NOT_FOUND, OK, UNAUTHORIZED } from '../constants/httpStatusCodes'
 import { prismaClient } from '../config/prismaClient'
 import jwt, { JwtPayload, VerifyCallback, VerifyErrors } from 'jsonwebtoken'
-import { AuthRequest, SendJwtPayload } from '../constants/types'
+import { roles } from '../constants/enums'
+
+
+
+export const signup = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = req.body
+    if (!user) throw new HttpError('user is required', BAD_REQUEST)
+    console.log("user = ")
+    console.log(user)
+    const newUser = await prismaClient.users.create({ data: { ...user, role: roles.user } })
+    
+    // * jwt
+    const accessToken = jwt.sign(
+      { "username": newUser.email },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: '30s' }
+    )
+    const refreshToken = jwt.sign(
+      { "username": newUser.email },
+      process.env.REFRESH_TOKEN_SECRET as string,
+      { expiresIn: '1d' }
+    )
+
+    const updatedUser = await prismaClient.users.update({
+      where: { userId: newUser.userId },
+      data: { refreshToken },
+    })
+
+    res.cookie('jwt', refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: 24 * 60 * 60 * 1000
+    })
+    console.log(newUser)
+    const { refreshToken: token, password: userPassword, ...rest } = newUser
+    res.status(OK).json({ message: 'signup success', accessToken, user: rest })
+  } catch (error) {
+    next(error)
+  }
+}
 
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
@@ -36,10 +77,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     res.cookie('jwt', refreshToken, {
       httpOnly: true,
       sameSite: 'none',
-      secure:true,
+      secure: true,
       maxAge: 24 * 60 * 60 * 1000
     })
-    res.status(OK).json({ message: 'login success', accessToken })
+    const { refreshToken: token, password: userPassword, ...rest } = user
+    res.status(OK).json({ message: 'login success', accessToken, user: rest })
   } catch (error) {
     next(error)
   }
@@ -67,7 +109,8 @@ export const handleRefreshToken = async (req: Request, res: Response, next: Next
         process.env.ACCESS_TOKEN_SECRET as string,
         { expiresIn: '30s' }
       )
-      res.status(OK).json({ message: 'login success', accessToken })
+      const { refreshToken, password, ...rest } = user
+      res.status(OK).json({ message: 'login success', accessToken, user: rest })
     }
 
     jwt.verify(

@@ -14,10 +14,11 @@ datasource db {
 }
 
 model Users {
-  userId       String @id @default(uuid())
+  userId       String  @id @default(uuid())
   name         String
-  email        String @unique
+  email        String  @unique
   password     String
   photo        String
   refreshToken String?
+  role         Int
 }
